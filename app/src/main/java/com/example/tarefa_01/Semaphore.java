@@ -8,7 +8,6 @@ public class Semaphore {
     private static final Coordinates coordenadas = new Coordinates();
     private static Queue<RegionObject> filaCoordenadas = new LinkedList<>();
     private static boolean adicionarRegiao = false;
-    private static boolean atualizaBancoDeDados = false;
     private static int regioesNaFila;
 
     public synchronized void take() {
@@ -34,21 +33,10 @@ public class Semaphore {
         adicionarRegiao = true;
     }
 
-
-    public void requestDataBase() {
-        atualizaBancoDeDados = true;
-    }
-
     public boolean getRequest() {
         boolean adicionarRegiaoAux = adicionarRegiao;
         adicionarRegiao = false; // Volta o status para não lido
         return adicionarRegiaoAux;
-    }
-
-    public boolean getRequestBD() {
-        boolean atualizaBD = atualizaBancoDeDados;
-        atualizaBancoDeDados = false; // Volta o status para não lido
-        return atualizaBD;
     }
 
     public void setNumberRegionsOnQueue(int numberRegions) {

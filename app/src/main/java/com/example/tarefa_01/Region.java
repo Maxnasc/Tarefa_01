@@ -31,7 +31,7 @@ public class Region implements Runnable{
     private Context context;
     private Queue<RegionObject> filaCoordenadas;
     private RegionObject regiao;
-    private final double RAIO = 30.0; // raio em metros
+    // raio em metros
     private Utils utils = new Utils();
 
     public Region(int tempo, Context context) {
@@ -57,7 +57,7 @@ public class Region implements Runnable{
                     if (filaCoordenadas != null) {
                     // Verifica se alguma coordenada está dentro do raio de 30m
                     double distancia = distanceToNearestCoordinate(coordenadas, filaCoordenadas);
-                    if (distancia < RAIO) {
+                    if (distancia < utils.RAIO) {
                         showMessage("Coordenada dentro do raio de 30m  -> " + distancia);
                     } else {
                         long uniqueId = utils.getNextUniqueId();
@@ -70,32 +70,6 @@ public class Region implements Runnable{
                         }
                     semaforo.setNumberRegionsOnQueue(filaCoordenadas.size());
                     }
-
-//                if (semaforo.getRequestBD()) {
-//                    if (!filaCoordenadas.isEmpty()) {
-//                        for (RegionObject coord : filaCoordenadas) {
-//                            // Montando objeto de rota
-//                            HashMap<String, String> dado = new HashMap<>();
-//                            dado.put("nome", coord.getNome());
-//                            dado.put("latitude", String.valueOf(coord.getPosixLatitude()));
-//                            dado.put("longitude", String.valueOf(coord.getPosixLongitude()));
-//                            dado.put("user", String.valueOf(coord.getUser()));
-//                            dado.put("timestamp", String.valueOf(coord.getTimestamp()));
-//                            // Publicando dados
-//                            db.collection("Regioes").document(coord.getNome()).set(dado).addOnCompleteListener(new OnCompleteListener<Void>() {
-//                                @Override
-//                                public void onComplete(@NonNull Task<Void> task) {
-//                                    showMessage("Dados enviados para o banco com sucesso");
-//                                }
-//                            }).addOnFailureListener(new OnFailureListener() {
-//                                @Override
-//                                public void onFailure(@NonNull Exception e) {
-//                                    showMessage("Falha ao enviar dados para o banco de dados");
-//                                }
-//                            });
-//                        }
-//                    }
-//                }
                 }
 
                 // Libera o semáforo
@@ -130,9 +104,6 @@ public class Region implements Runnable{
 
         for (RegionObject coord : filaCoordenadas) {
             double distancia = utils.calcularDistancia(coordenada.getLatitude(), coordenada.getLongitude(), coord.getPosixLatitude(), coord.getPosixLongitude());
-            Log.e("Distancia", "" + distancia);
-            Log.e("Distancia", "coord: lat= "+coord.getPosixLatitude() + "long= "+coord.getPosixLongitude());
-            Log.e("Distancia", "coord: lat= "+coordenada.getLatitude() + "long= "+coordenada.getLongitude());
             if (distancia < menorDistancia) {
                 menorDistancia = distancia;
             }

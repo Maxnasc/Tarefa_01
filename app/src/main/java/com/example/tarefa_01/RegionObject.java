@@ -2,15 +2,19 @@ package com.example.tarefa_01;
 
 public class RegionObject {
     private String nome;
-    private double lat;
-    private double longi;
+    private double posixLatitude;
+    private double posixLongitude;
     private int user;
     private long timestamp;
 
+    public RegionObject () {
+
+    }
+
     public RegionObject (String nome, double lat, double longi, int user, long timestamp) {
         this.nome = nome;
-        this.lat = lat;
-        this.longi = longi;
+        this.posixLatitude = lat;
+        this.posixLongitude = longi;
         this.user = user;
         this.timestamp = timestamp;
     }
@@ -24,11 +28,11 @@ public class RegionObject {
     }
 
     public double getPosixLatitude () {
-        return this.lat;
+        return this.posixLatitude;
     }
 
     public double getPosixLongitude () {
-        return this.longi;
+        return this.posixLongitude;
     }
 
     public int getUser () {return this.user;}

@@ -16,6 +16,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.calculos.Utils;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -30,6 +31,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Queue;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -47,6 +49,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap myMap;
     private FirebaseFirestore db;
     private Queue<RegionObject> filaCoordenadas;
+    private Queue<RegionObject> dadosDB = new LinkedList<>();
+    private Utils utils = new Utils();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,12 +79,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         botaoRegion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Solicita a adição de região para a classe Region através do semáforo
                 // Bloqueia a execução até que o semáforo seja liberado
                 semaforo.take();
 
                 // Obtém as coordenadas atuais
                 semaforo.requestRegion();
+                Log.i("Requisicao", "Pediu pra gravar dnv");
 
                 // Libera o semáforo
                 try {
@@ -93,74 +97,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         botaoAtualizarBD.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Solicita a adição de região para a classe Region através do semáforo
-                // Bloqueia a execução até que o semáforo seja liberado
-                semaforo.take();
-
-                // Obtém as coordenadas atuais
-                semaforo.requestRegion();
-                filaCoordenadas = semaforo.getFilaCoordenadas();
-
-                if (filaCoordenadas != null) {
-                    if (!filaCoordenadas.isEmpty()) {
-                        Toast.makeText(MainActivity.this, "Dados enviados para o banco com sucesso", Toast.LENGTH_SHORT).show();
-
-                        for (RegionObject coord : filaCoordenadas) {
-                            // Montando objeto de rota
-                            HashMap<String, String> dado = new HashMap<>();
-                            dado.put("nome", coord.getNome());
-                            dado.put("latitude", String.valueOf(coord.getPosixLatitude()));
-                            dado.put("longitude", String.valueOf(coord.getPosixLongitude()));
-                            dado.put("user", String.valueOf(coord.getUser()));
-                            dado.put("timestamp", String.valueOf(coord.getTimestamp()));
-                            // Publicando dados
-                            db.collection("Regioes").document(coord.getNome()).set(dado).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    Toast.makeText(MainActivity.this, "Dados enviados para o banco com sucesso", Toast.LENGTH_SHORT).show();
-                                }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Toast.makeText(MainActivity.this, "Falha ao enviar dados para o banco de dados", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        }
-                        filaCoordenadas.clear();
-                        semaforo.setFilaCoordenadas(filaCoordenadas);
-                    } else {
-                        Toast.makeText(MainActivity.this, "Impossível gravar no banco, fila vazia", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(MainActivity.this, "Impossível gravar no banco, fila vazia", Toast.LENGTH_SHORT).show();
-                }
-
-                // Libera o semáforo
-                try {
-                    semaforo.release();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
-
-        // Configura o listener de clique para o botão
-        botaoAtualizarBD.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Solicita a adição de região para a classe Region através do semáforo
-                // Bloqueia a execução até que o semáforo seja liberado
-                semaforo.take();
-
-                // Obtém as coordenadas atuais
-                semaforo.requestDataBase();
-
-                // Libera o semáforo
-                try {
-                    semaforo.release();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                recordDB();
             }
         });
 
@@ -177,10 +114,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Inicializa o Handler para agendar a execução da função showMap() periodicamente
         handler = new Handler();
-
-        // Configuração da WebView
-//        wv = findViewById(R.id.webv);
-//        wv.getSettings().setJavaScriptEnabled(true);
 
         // Chamada do método onCreate
         EdgeToEdge.enable(this);
@@ -202,6 +135,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 try {
                     // Chama a função showMap() para atualizar o mapa
                     showMap();
+                    // Faz a consulta no banco para atualizar o app
+                    consultaBanco();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -218,23 +153,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Obtém as coordenadas atuais
         coordenadas = semaforo.get_coordenadas();
+        posicao = new LatLng(coordenadas.getLatitude(), coordenadas.getLongitude());
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
 
-        //Log.e("Localizacao", "Latitude: " + coordenadas.getLatitude() + " | Longitude: " + coordenadas.getLongitude());
-
-        //if ((coordenadas.getLatitude() != bufferCoordenadas.getLatitude()) && (coordenadas.getLongitude() != bufferCoordenadas.getLatitude())) {
-            // Exibe o mapa com as coordenadas atualizadas
-            posicao = new LatLng(coordenadas.getLatitude(), coordenadas.getLongitude());
-            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-            mapFragment.getMapAsync(this);
-
-            // Atualiza os TextViews com as coordenadas
-            String textoLatitude = "Latitude: " + coordenadas.getLatitude();
-            String textoLongitude = "Longitude: " + coordenadas.getLongitude();
-            texViewLatitude.setText(textoLatitude);
-            texViewLongitude.setText(textoLongitude);
-            textCountRegion.setText("Regiões adicionadas: " + semaforo.getNumberRegionsOnQueue());
-            bufferCoordenadas = coordenadas;
-        //}
+        // Atualiza os TextViews com as coordenadas
+        String textoLatitude = "Latitude: " + coordenadas.getLatitude();
+        String textoLongitude = "Longitude: " + coordenadas.getLongitude();
+        texViewLatitude.setText(textoLatitude);
+        texViewLongitude.setText(textoLongitude);
+        textCountRegion.setText("Regiões adicionadas: " + semaforo.getNumberRegionsOnQueue());
+        bufferCoordenadas = coordenadas;
 
         // Libera o semáforo
         semaforo.release();
@@ -253,5 +182,79 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             myMap.getUiSettings().setCompassEnabled(true);
             myMap.animateCamera(yourLocation);
         }
+    }
+
+    private void recordDB() {
+        new Thread(() -> {
+            try {
+                semaforo.take();
+                boolean adicionouAlgo = false;
+                filaCoordenadas = semaforo.getFilaCoordenadas();
+                consultaBanco();
+
+                if (!filaCoordenadas.isEmpty()) {
+                for (RegionObject regiaoLocal : filaCoordenadas) {
+                    if (!dadosDB.isEmpty()) {
+                        for (RegionObject regiaoDoBanco : dadosDB) {
+                            double distancia = distanceToNearestCoordinate(regiaoDoBanco, regiaoLocal);
+                            if (distancia < utils.RAIO) {
+                                showMessage("Coordenada dentro do raio de 30m  -> " + distancia);
+                            } else {
+                                db.collection("Regioes").document(regiaoLocal.getNome()).set(regiaoLocal);
+                                adicionouAlgo = true;
+                            }
+                        }
+                    } else {
+                        // Adiciona primeiro termo
+                        db.collection("Regioes").document(regiaoLocal.getNome()).set(regiaoLocal);
+                        adicionouAlgo = true;
+                    }
+                }} else {
+                    showMessage("Fila de regiões vazia");
+                }
+
+                if (adicionouAlgo) {
+                    showMessage("Dado(s) adicionado(s) no banco de dados");
+                }
+
+                filaCoordenadas.clear();
+                semaforo.setFilaCoordenadas(filaCoordenadas);
+                semaforo.setNumberRegionsOnQueue(0);
+                semaforo.release();
+
+            } catch (Exception e) {
+                Log.i("ERRO", String.valueOf(e));
+                throw new RuntimeException(e);
+            }
+        }).start();
+    }
+
+    private double distanceToNearestCoordinate(RegionObject regiaoDoBanco, RegionObject regiaoLocal) {
+        double distancia = utils.calcularDistancia(regiaoDoBanco.getPosixLatitude(), regiaoDoBanco.getPosixLongitude(), regiaoLocal.getPosixLatitude(), regiaoLocal.getPosixLongitude());
+        return distancia;
+    }
+
+    private void consultaBanco () {
+        Queue<RegionObject> dados = new LinkedList<>();
+        new Thread(() -> {
+            db.collection("Regioes").get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Log.i("recordDB", "Dados lidos com sucesso");
+                    dados.addAll(task.getResult().toObjects(RegionObject.class));
+                    this.dadosDB = dados;
+                } else {
+                    Log.w("Firebase", "Erro ao obter documentos.", task.getException());
+                }
+            });
+        }).start();
+    }
+
+    private void showMessage(final String message) {
+        (MainActivity.this).runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
