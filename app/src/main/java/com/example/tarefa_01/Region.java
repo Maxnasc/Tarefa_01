@@ -60,7 +60,7 @@ public class Region implements Runnable{
                     if (distancia < utils.RAIO) {
                         showMessage("Coordenada dentro do raio de 30m  -> " + distancia);
                     } else {
-                        long uniqueId = utils.getNextUniqueId();
+                        String uniqueId = utils.getNextUniqueId();
                         String nomeRegiao = "Regiao_"+uniqueId;
 
                         regiao = new RegionObject(nomeRegiao, coordenadas.getLatitude(), coordenadas.getLongitude(), 1, System.nanoTime());
