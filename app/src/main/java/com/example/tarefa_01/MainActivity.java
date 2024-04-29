@@ -1,10 +1,11 @@
 package com.example.tarefa_01;
 
+import static java.util.Currency.getInstance;
+
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,6 +17,10 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.calculos.CryptoUtils;
+import com.example.calculos.Region;
+import com.example.calculos.RestrictedRegion;
+import com.example.calculos.SubRegion;
 import com.example.calculos.Utils;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -24,14 +29,12 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -48,8 +51,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Button botaoAtualizarBD;
     private GoogleMap myMap;
     private FirebaseFirestore db;
-    private Queue<RegionObject> filaCoordenadas;
-    private Queue<RegionObject> dadosDB = new LinkedList<>();
+    private Queue<Region> filaCoordenadas;
+    private Queue<Region> dadosDB = new LinkedList<>();
     private Utils utils = new Utils();
 
     @Override
@@ -103,12 +106,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Instancianado variáveis
         Localizacao localizacao = new Localizacao(1000, MainActivity.this);
-        Region addRegion = new Region(1000, MainActivity.this);
+        RegionManager addRegionManager = new RegionManager(1000, MainActivity.this);
         semaforo = new Semaphore();
 
         // Iniciando as Threads
         Thread t1 = new Thread(localizacao);
-        Thread t2 = new Thread(addRegion);
+        Thread t2 = new Thread(addRegionManager);
         t1.start();
         t2.start();
 
@@ -193,20 +196,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 consultaBanco();
 
                 if (!filaCoordenadas.isEmpty()) {
-                for (RegionObject regiaoLocal : filaCoordenadas) {
+                for (Region regiaoLocal : filaCoordenadas) {
                     if (!dadosDB.isEmpty()) {
-                        for (RegionObject regiaoDoBanco : dadosDB) {
-                            double distancia = distanceToNearestCoordinate(regiaoDoBanco, regiaoLocal);
-                            if (distancia < utils.RAIO) {
-                                showMessage("Coordenada dentro do raio de 30m  -> " + distancia);
-                            } else {
-                                db.collection("Regioes").document(regiaoLocal.getNome()).set(regiaoLocal);
-                                adicionouAlgo = true;
-                            }
+                        if (regiaoLocal.verifyDistance(dadosDB)) {
+                            db.collection("Regioes").document(regiaoLocal.getNome()).set(regiaoLocal.getAllDataForDatabase());
+                            adicionouAlgo = true;
+                        } else {
+                            showMessage("Coordenada dentro do raio mínimo");
                         }
                     } else {
                         // Adiciona primeiro termo
-                        db.collection("Regioes").document(regiaoLocal.getNome()).set(regiaoLocal);
+                        db.collection("Regioes").document(regiaoLocal.getNome()).set(regiaoLocal.getAllDataForDatabase());
                         adicionouAlgo = true;
                     }
                 }} else {
@@ -215,6 +215,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 if (adicionouAlgo) {
                     showMessage("Dado(s) adicionado(s) no banco de dados");
+                } else {
+                    showMessage("Falha ao adicionar o(s) dados ao banco");
                 }
 
                 filaCoordenadas.clear();
@@ -229,18 +231,39 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }).start();
     }
 
-    private double distanceToNearestCoordinate(RegionObject regiaoDoBanco, RegionObject regiaoLocal) {
-        double distancia = utils.calcularDistancia(regiaoDoBanco.getPosixLatitude(), regiaoDoBanco.getPosixLongitude(), regiaoLocal.getPosixLatitude(), regiaoLocal.getPosixLongitude());
-        return distancia;
-    }
+//    private double distanceToNearestCoordinate(Region regiaoDoBanco, Region regiaoLocal) {
+//        double distancia = regiaoLocal.calcularDistancia(regiaoDoBanco.getPosixLatitude(), regiaoDoBanco.getPosixLongitude(), regiaoLocal.getPosixLatitude(), regiaoLocal.getPosixLongitude());
+//        return distancia;
+//    }
 
-    private void consultaBanco () {
-        Queue<RegionObject> dados = new LinkedList<>();
+    private void consultaBanco() {
+        Queue<Region> dados = new LinkedList<>();
         new Thread(() -> {
             db.collection("Regioes").get().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     Log.i("recordDB", "Dados lidos com sucesso");
-                    dados.addAll(task.getResult().toObjects(RegionObject.class));
+                    for (DocumentSnapshot document : task.getResult()) {
+                        Region objeto = null;
+                        Map<String, Object> data = document.getData();
+                        if (data != null) {
+                            // Verificar o tipo do objeto
+                            if (data.containsKey("mainRegion")) {
+                                if (data.containsKey("Restricted")) {
+                                    //objeto = new RestrictedRegion((String) data.get("nome"), (Double) data.get("posixLatitude"), (Double) data.get("posixLongitude"), (int) data.get("user"), (long) data.get("timestamp"), (Region) data.get("mainRegion"));
+                                    objeto = document.toObject(RestrictedRegion.class);
+                                } else {
+                                    //objeto = new SubRegion((String) data.get("nome"), (Double) data.get("posixLatitude"), (Double) data.get("posixLongitude"), (int) data.get("user"), (long) data.get("timestamp"), (Region) data.get("mainRegion"));
+                                    objeto = document.toObject(SubRegion.class);
+                                }
+                            } else {
+                                //objeto = new Region((String) data.get("nome"), (Double) data.get("posixLatitude"), (Double) data.get("posixLongitude"), (int) data.get("user"), (long) data.get("timestamp"));
+                                objeto = document.toObject(Region.class);
+                            }
+                        }
+                        if (objeto != null) {
+                            dados.add(objeto);
+                        }
+                    }
                     this.dadosDB = dados;
                 } else {
                     Log.w("Firebase", "Erro ao obter documentos.", task.getException());

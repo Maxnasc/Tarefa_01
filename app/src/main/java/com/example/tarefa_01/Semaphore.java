@@ -1,12 +1,14 @@
 package com.example.tarefa_01;
 
+import com.example.calculos.Region;
+
 import java.util.LinkedList;
 import java.util.Queue;
 
 public class Semaphore {
     private static boolean signal = false;
     private static final Coordinates coordenadas = new Coordinates();
-    private static Queue<RegionObject> filaCoordenadas = new LinkedList<>();
+    private static Queue<Region> filaCoordenadas = new LinkedList<>();
     private static boolean adicionarRegiao = false;
     private static int regioesNaFila;
 
@@ -47,11 +49,11 @@ public class Semaphore {
         return String.valueOf(regioesNaFila);
     }
 
-    public Queue<RegionObject> getFilaCoordenadas () {
+    public Queue<Region> getFilaCoordenadas () {
         return filaCoordenadas;
     }
 
-    public void setFilaCoordenadas (Queue<RegionObject> filaCoordenadas) {
+    public void setFilaCoordenadas (Queue<Region> filaCoordenadas) {
         Semaphore.filaCoordenadas = filaCoordenadas;
     }
 }
