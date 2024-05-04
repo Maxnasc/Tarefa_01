@@ -2,6 +2,7 @@ package com.example.tarefa_01;
 
 import static java.util.Currency.getInstance;
 
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -79,6 +81,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         FirebaseApp.initializeApp(this);
         db = FirebaseFirestore.getInstance();
 
+        getPermissions();
+
         // Configura os listeners de clique para o botão
         botaoRegion.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -132,6 +136,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Inicia o agendamento da execução da função showMap()
         scheduleShowMap();
+    }
+
+    private void getPermissions() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED) {
+            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 0);
+        } else {
+            showMessage("Permissão negada");
+        }
     }
 
     // Método para agendar a execução da função showMap() em intervalos regulares

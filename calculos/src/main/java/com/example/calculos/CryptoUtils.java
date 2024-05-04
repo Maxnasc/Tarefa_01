@@ -13,54 +13,14 @@ import java.util.Map;
 
 public class CryptoUtils {
     private int tempo; // Período da thread
-    private static final String ALGORITHM = "AES/GCM/NoPadding";
-    private static final String SECRET_KEY = "D8Xh!^iKFJQng%%Bh59F7N";
-    private Key key;
-    private SecureRandom sr;
-    private byte[] iv;
+    private static final String ALGORITHM = "AES";
+    private static final String SECRET_KEY = "MySecretKey12345";
 
     private Region dataRegion; // Objeto de região
     private boolean encrypt; // true para criptografar, false para descriptografar
 
     public CryptoUtils() {
-        try {
-            KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-            keyGen.init(256); // ou 128 ou 192
-            this.key = keyGen.generateKey();
-            sr = SecureRandom.getInstance("IngrianRNG","IngrianProvider");
-            this.iv = new byte[16];
-            sr.nextBytes(iv);
-        } catch (Exception e) {
-            Log.i("Erro na geração da chave", String.valueOf(e));
-        }
     }
-
-    public CryptoUtils(int tempo) {
-        this.tempo = tempo;
-    }
-
-//    @Override
-//    public void run() {
-//        while(true){
-//            try {
-//                // Pega a Region do semáforo
-//                dataRegion = semaforo.getEncryptRequest();
-//                if (dataRegion != null) {
-//                    if (dataRegion instanceof Region) {
-//                        data
-//                    } else if (dataRegion instanceof SubRegion) {
-//
-//                    } else if (dataRegion instanceof RestrictedRegion) {
-//
-//                    }
-//                }
-//                // Pausa de 500ms
-//                Thread.sleep(tempo);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
 
     private String encryptDouble(double data) throws Exception {
         return encrypt(String.valueOf(data));
@@ -94,18 +54,34 @@ public class CryptoUtils {
         return Boolean.parseBoolean(decrypt(encryptedData));
     }
 
+    private static Key generateKey(String secretKey) {
+        return new SecretKeySpec(secretKey.getBytes(), ALGORITHM);
+    }
+
     private String encrypt(String data) throws Exception {
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
-        cipher.init(Cipher.ENCRYPT_MODE, key);
-        byte[] encryptedByteValue = cipher.doFinal(data.getBytes("utf-8"));
-        return Base64.getEncoder().encodeToString(encryptedByteValue);
+        try {
+            Key key = generateKey(SECRET_KEY);
+            Cipher cipher = Cipher.getInstance(ALGORITHM);
+            cipher.init(Cipher.ENCRYPT_MODE, key);
+            byte[] encryptedBytes = cipher.doFinal(data.getBytes());
+            return Base64.getEncoder().encodeToString(encryptedBytes);
+        } catch (Exception e) {
+            Log.i("Erro na montagem do objeto", String.valueOf(e));
+        }
+        return null;
     }
 
     private String decrypt(String encryptedData) throws Exception {
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
-        cipher.init(Cipher.DECRYPT_MODE, key);
-        byte[] decryptedByteValue = cipher.doFinal(Base64.getDecoder().decode(encryptedData));
-        return new String(decryptedByteValue, "utf-8");
+        try {
+            Key key = generateKey(SECRET_KEY);
+            Cipher cipher = Cipher.getInstance(ALGORITHM);
+            cipher.init(Cipher.DECRYPT_MODE, key);
+            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedData));
+            return new String(decryptedBytes);
+        } catch (Exception e) {
+            Log.i("Erro na montagem do objeto", String.valueOf(e));
+        }
+        return null;
     }
 
     public Map<String, String> encryptRegion(Region region) {
@@ -163,7 +139,8 @@ public class CryptoUtils {
         Region objToSend = new Region();
         try {
             objToSend.setNome(decrypt((String) data.get("nome")));
-            objToSend.setPosixLatitude(decryptDouble((String) data.get("posixLatitude")));
+            Double obj = decryptDouble((String) data.get("posixLatitude"));
+            objToSend.setPosixLatitude(obj);
             objToSend.setPosixLongitude(decryptDouble((String) data.get("posixLongitude")));
             objToSend.setUser(decryptInt((String) data.get("user")));
             objToSend.setTimestamp(decryptLong((String) data.get("timestamp")));
