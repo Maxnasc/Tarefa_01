@@ -17,6 +17,22 @@ public class RestrictedRegion extends Region {
        this.restricted = true;
     }
 
+    public Region getMainRegion() {
+        return mainRegion;
+    }
+
+    public void setMainRegion(Region mainRegion) {
+        this.mainRegion = mainRegion;
+    }
+
+    public boolean getRestricted() {
+        return restricted;
+    }
+
+    public void setRestricted(boolean restricted) {
+        this.restricted = restricted;
+    }
+
     @Override
     public Map<String, Object> getAllDataForDatabase() {
         Map<String, Object> data = new HashMap<>(super.getAllDataForDatabase());

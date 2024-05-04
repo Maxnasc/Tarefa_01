@@ -17,6 +17,14 @@ public class SubRegion extends Region {
         this.mainRegion = mainRegion;
     }
 
+    public Region getMainRegion() {
+        return mainRegion;
+    }
+
+    public void setMainRegion(Region mainRegion) {
+        this.mainRegion = mainRegion;
+    }
+
     @Override
     public Map<String, Object> getAllDataForDatabase() {
         Map<String, Object> data = new HashMap<>(super.getAllDataForDatabase());

@@ -9,6 +9,7 @@ import com.example.calculos.RestrictedRegion;
 import com.example.calculos.SubRegion;
 import com.example.calculos.Utils;
 
+import java.util.Map;
 import java.util.Queue;
 
 public class RegionManager implements Runnable{
@@ -23,6 +24,7 @@ public class RegionManager implements Runnable{
     private RestrictedRegion regiaoRestrita;
     // raio em metros
     private Utils utils = new Utils();
+    private CryptoUtils encriptador = new CryptoUtils();
 
     private boolean chaveador_regiao = false; // false = sub e true = restrict
 
@@ -30,7 +32,7 @@ public class RegionManager implements Runnable{
         this.tempo = tempo;
         this.context = context;
         this.coordenadas = new Coordinates();
-        semaforo = new Semaphore();
+        this.semaforo = new Semaphore();
     }
 
     @Override
@@ -63,6 +65,7 @@ public class RegionManager implements Runnable{
                                         1,
                                         System.nanoTime(),
                                         getMainRegion(coordenadas, filaCoordenadas, distancia));
+                                subRegiao.setDadoEncriptado(encriptador.encryptSubRegion(subRegiao));
                                 filaCoordenadas.add(subRegiao);
                                 semaforo.setFilaCoordenadas(filaCoordenadas);
                                 chaveador_regiao = true; // Próxima deve ser Região restrita
@@ -72,6 +75,7 @@ public class RegionManager implements Runnable{
                                 String nomeRegiao = "Regiao_Restrita_"+uniqueId;
 
                                 regiaoRestrita = new RestrictedRegion(nomeRegiao, coordenadas.getLatitude(), coordenadas.getLongitude(), 1, System.nanoTime(), getMainRegion(coordenadas, filaCoordenadas, distancia));
+                                regiaoRestrita.setDadoEncriptado(encriptador.encryptSRestrictedRegion(regiaoRestrita));
                                 filaCoordenadas.add(regiaoRestrita);
                                 semaforo.setFilaCoordenadas(filaCoordenadas);
                                 chaveador_regiao = false; // Próxima deve ser sub Região
@@ -83,6 +87,8 @@ public class RegionManager implements Runnable{
                         String nomeRegiao = "Regiao_"+uniqueId;
 
                         regiao = new Region(nomeRegiao, coordenadas.getLatitude(), coordenadas.getLongitude(), 1, System.nanoTime());
+                        Map<String, String> dadoEncriptado = encriptador.encryptRegion(regiao);
+                        regiao.setDadoEncriptado(dadoEncriptado);
                         filaCoordenadas.add(regiao);
                         semaforo.setFilaCoordenadas(filaCoordenadas);
                         showMessage("Região adicionada");

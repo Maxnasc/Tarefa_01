@@ -11,6 +11,7 @@ public class Semaphore {
     private static Queue<Region> filaCoordenadas = new LinkedList<>();
     private static boolean adicionarRegiao = false;
     private static int regioesNaFila;
+    private static Region regionToEncrypt;
 
     public synchronized void take() {
         signal = true;
@@ -55,5 +56,13 @@ public class Semaphore {
 
     public void setFilaCoordenadas (Queue<Region> filaCoordenadas) {
         Semaphore.filaCoordenadas = filaCoordenadas;
+    }
+
+    public void setRegionToEncrypt(Region regionToEncrypt) {
+        Semaphore.regionToEncrypt = regionToEncrypt;
+    }
+
+    public Region getEncryptRequest() {
+        return regionToEncrypt;
     }
 }

@@ -12,6 +12,8 @@ public class Region {
     protected double posixLongitude;
     protected int user;
     protected long timestamp;
+    protected Map<String, String> dadoEncriptado;
+
 
     public Region() {
 
@@ -25,25 +27,47 @@ public class Region {
         this.timestamp = timestamp;
     }
 
-    public void setNome (String nome) {
-        this.nome = nome;
+    public void setDadoEncriptado (Map<String, String> dadoEncriptado) {
+        this.dadoEncriptado = dadoEncriptado;
+    }
+
+    public Map<String, String> getDadoEncriptado() {
+        return dadoEncriptado;
     }
 
     public String getNome () {
         return this.nome;
+    }
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
     public double getPosixLatitude () {
         return this.posixLatitude;
     }
 
+    public void setPosixLatitude (Double posixLatitude) {
+        this.posixLatitude = posixLatitude;
+    }
+
     public double getPosixLongitude () {
         return this.posixLongitude;
+    }
+    public void setPosixLongitude (Double posixLongitude) {
+        this.posixLongitude = posixLongitude;
     }
 
     public int getUser () {return this.user;}
 
+    public void setUser (int user) {
+        this.user = user;
+    }
+
     public long getTimestamp () {return timestamp;}
+
+    public void setTimestamp (long timestamp) {
+        this.timestamp = timestamp;
+    }
 
     public boolean verifyDistance(Queue<Region> dadosDB) {
         double RAIO_MINIMO = 30.0; //Raio para regiões
@@ -67,10 +91,6 @@ public class Region {
         float[] results = new float[1];
         Location.distanceBetween(lat1, lon1, lat2, lon2, results);
         return results[0];
-    }
-
-    public Region retornaObj() {
-        return this;
     }
 
     // Método que retorna todos os dados necessários para salvar no banco de dados

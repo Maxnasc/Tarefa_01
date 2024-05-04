@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Queue<Region> filaCoordenadas;
     private Queue<Region> dadosDB = new LinkedList<>();
     private Utils utils = new Utils();
+    private CryptoUtils encriptador = new CryptoUtils();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,13 +108,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Instancianado variáveis
         Localizacao localizacao = new Localizacao(1000, MainActivity.this);
         RegionManager addRegionManager = new RegionManager(1000, MainActivity.this);
+        //CryptoUtils encriptador = new CryptoUtils(500);
         semaforo = new Semaphore();
 
         // Iniciando as Threads
         Thread t1 = new Thread(localizacao);
         Thread t2 = new Thread(addRegionManager);
+        //Thread t3 = new Thread(encriptador);
         t1.start();
         t2.start();
+        //t3.start();
 
         // Inicializa o Handler para agendar a execução da função showMap() periodicamente
         handler = new Handler();
@@ -199,14 +203,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 for (Region regiaoLocal : filaCoordenadas) {
                     if (!dadosDB.isEmpty()) {
                         if (regiaoLocal.verifyDistance(dadosDB)) {
-                            db.collection("Regioes").document(regiaoLocal.getNome()).set(regiaoLocal.getAllDataForDatabase());
+                            db.collection("Regioes").document(regiaoLocal.getNome()).set(regiaoLocal.getDadoEncriptado());
                             adicionouAlgo = true;
                         } else {
                             showMessage("Coordenada dentro do raio mínimo");
                         }
                     } else {
                         // Adiciona primeiro termo
-                        db.collection("Regioes").document(regiaoLocal.getNome()).set(regiaoLocal.getAllDataForDatabase());
+                        db.collection("Regioes").document(regiaoLocal.getNome()).set(regiaoLocal.getDadoEncriptado());
                         adicionouAlgo = true;
                     }
                 }} else {
@@ -231,11 +235,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }).start();
     }
 
-//    private double distanceToNearestCoordinate(Region regiaoDoBanco, Region regiaoLocal) {
-//        double distancia = regiaoLocal.calcularDistancia(regiaoDoBanco.getPosixLatitude(), regiaoDoBanco.getPosixLongitude(), regiaoLocal.getPosixLatitude(), regiaoLocal.getPosixLongitude());
-//        return distancia;
-//    }
-
     private void consultaBanco() {
         Queue<Region> dados = new LinkedList<>();
         new Thread(() -> {
@@ -250,14 +249,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             if (data.containsKey("mainRegion")) {
                                 if (data.containsKey("Restricted")) {
                                     //objeto = new RestrictedRegion((String) data.get("nome"), (Double) data.get("posixLatitude"), (Double) data.get("posixLongitude"), (int) data.get("user"), (long) data.get("timestamp"), (Region) data.get("mainRegion"));
-                                    objeto = document.toObject(RestrictedRegion.class);
+                                    objeto = encriptador.decryptRestrictedRegion(data);
+                                    //objeto = document.toObject(RestrictedRegion.class);
                                 } else {
                                     //objeto = new SubRegion((String) data.get("nome"), (Double) data.get("posixLatitude"), (Double) data.get("posixLongitude"), (int) data.get("user"), (long) data.get("timestamp"), (Region) data.get("mainRegion"));
-                                    objeto = document.toObject(SubRegion.class);
+                                    objeto = encriptador.decryptSubRegion(data);
+                                    //objeto = document.toObject(SubRegion.class);
                                 }
                             } else {
                                 //objeto = new Region((String) data.get("nome"), (Double) data.get("posixLatitude"), (Double) data.get("posixLongitude"), (int) data.get("user"), (long) data.get("timestamp"));
-                                objeto = document.toObject(Region.class);
+                                objeto = encriptador.decryptRegion(data);
+                                //objeto = document.toObject(Region.class);
                             }
                         }
                         if (objeto != null) {

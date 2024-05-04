@@ -22,4 +22,3 @@ dependencyResolutionManagement {
 rootProject.name = "Tarefa_01"
 include(":app")
 include(":calculos")
-include(":mylibrary")
