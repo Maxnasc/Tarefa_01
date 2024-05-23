@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,9 +18,6 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.calculos.CryptoUtils;
 import com.example.calculos.Region;
-import com.example.calculos.RestrictedRegion;
-import com.example.calculos.SubRegion;
-import com.example.calculos.Utils;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -54,14 +50,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private TextView texViewLatitude;
     private TextView texViewLongitude;
     private TextView textCountRegion;
-    private Button botaoRegion;
-    private Button botaoAtualizarBD;
     private GoogleMap myMap;
     private FirebaseFirestore db;
     private Queue<Region> filaCoordenadas;
     private Queue<Region> dadosDB = new LinkedList<>();
-    private Utils utils = new Utils();
-    private CryptoUtils encriptador = new CryptoUtils();
+    private final CryptoUtils encriptador = new CryptoUtils();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,8 +82,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         texViewLatitude = findViewById(R.id.textViewLatitude);
         texViewLongitude = findViewById(R.id.textViewLongitude);
         textCountRegion = findViewById(R.id.controleRegioes);
-        botaoRegion = findViewById(R.id.buttonAdicionaRegiao);
-        botaoAtualizarBD = findViewById(R.id.atualizarBancoDeDados);
+        Button botaoRegion = findViewById(R.id.buttonAdicionaRegiao);
+        Button botaoAtualizarBD = findViewById(R.id.atualizarBancoDeDados);
 
         bufferCoordenadas = new Coordinates();
         bufferCoordenadas.setLatitude(0);
@@ -134,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     showMap();
                     consultaBanco();
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Log.i("MapError", String.valueOf(e));
                 }
                 handler.postDelayed(this, UPDATE_INTERVAL_MS);
             }
@@ -242,7 +235,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return false;
     }
 
-    private void addRegionToDatabase(Region regiaoLocal) throws Exception {
+    private void addRegionToDatabase(Region regiaoLocal) {
         Map<String, Object> data = jsonObjectToMap(regiaoLocal.getDadoEncriptado());
         db.collection("Regioes").document(regiaoLocal.getNome()).set(data);
     }

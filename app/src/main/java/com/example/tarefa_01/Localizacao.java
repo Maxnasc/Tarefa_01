@@ -14,15 +14,13 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.CancellationTokenSource;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 public class Localizacao extends AppCompatActivity implements Runnable {
-    private int tempo;
-    private FusedLocationProviderClient fusedLocationClient;
-    private CancellationTokenSource cancellationSource = new CancellationTokenSource();
-    private Context context;
-    private Semaphore semaforo;
+    private final int tempo;
+    private final CancellationTokenSource cancellationSource = new CancellationTokenSource();
+    private final Context context;
+    private final Semaphore semaforo;
     private double latitude;
     private double longitude;
 
@@ -30,7 +28,7 @@ public class Localizacao extends AppCompatActivity implements Runnable {
         this.tempo = tempo;
         this.context = context;
         semaforo = new Semaphore();
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
+        FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
     }
 
     @Override

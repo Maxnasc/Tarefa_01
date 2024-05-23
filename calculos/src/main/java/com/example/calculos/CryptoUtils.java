@@ -14,12 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CryptoUtils {
-    private int tempo; // Período da thread
     private static final String ALGORITHM = "AES";
     private static final String SECRET_KEY = "MySecretKey12345";
-
-    private Region dataRegion; // Objeto de região
-    private boolean encrypt; // true para criptografar, false para descriptografar
 
     public CryptoUtils() {
     }
