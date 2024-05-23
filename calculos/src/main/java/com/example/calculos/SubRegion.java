@@ -34,7 +34,7 @@ public class SubRegion extends Region {
 
     @Override
     public boolean verifyDistance(Queue<Region> dadosDB) {
-        double RAIO_MINIMO = 0; //Raio para subRegiões e regiões restritas
+        double RAIO_MINIMO = 5; //Raio para subRegiões e regiões restritas
         double menorDistancia = Double.MAX_VALUE;
         float[] results = new float[1];
 
