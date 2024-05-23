@@ -2,6 +2,8 @@ package com.example.calculos;
 
 import android.util.Log;
 
+import com.google.gson.JsonObject;
+
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.spec.SecretKeySpec;
@@ -84,15 +86,15 @@ public class CryptoUtils {
         return null;
     }
 
-    public Map<String, String> encryptRegion(Region region) {
+    public JsonObject encryptRegion(Region region) {
         // Função que monta o objeto de Region encriptado
         try {
-            Map<String, String> dados = new HashMap<>();
-            dados.put("nome", encrypt(region.getNome()));
-            dados.put("posixLatitude", encryptDouble(region.getPosixLatitude()));
-            dados.put("posixLongitude", encryptDouble(region.getPosixLongitude()));
-            dados.put("user", encryptInt(region.getUser()));
-            dados.put("timestamp", encryptLong(region.getTimestamp()));
+            JsonObject dados = new JsonObject();
+            dados.addProperty("nome", encrypt(region.getNome()));
+            dados.addProperty("posixLatitude", encryptDouble(region.getPosixLatitude()));
+            dados.addProperty("posixLongitude", encryptDouble(region.getPosixLongitude()));
+            dados.addProperty("user", encryptInt(region.getUser()));
+            dados.addProperty("timestamp", encryptLong(region.getTimestamp()));
             return dados;
         } catch (Exception e) {
             Log.i("Erro na montagem do objeto", String.valueOf(e));
@@ -100,16 +102,16 @@ public class CryptoUtils {
         return null;
     }
 
-    public Map<String, String> encryptSubRegion(SubRegion region) {
+    public JsonObject encryptSubRegion(SubRegion region) {
         // Função que monta o objeto de Region encriptado
         try {
-            Map<String, String> dados = new HashMap<>();
-            dados.put("mainRegion", encrypt(region.getMainRegion().getNome()));
-            dados.put("nome", encrypt(region.getNome()));
-            dados.put("posixLatitude", encryptDouble(region.getPosixLatitude()));
-            dados.put("posixLongitude", encryptDouble(region.getPosixLongitude()));
-            dados.put("user", encryptInt(region.getUser()));
-            dados.put("timestamp", encryptLong(region.getTimestamp()));
+            JsonObject dados = new JsonObject();
+            dados.addProperty("mainRegion", encrypt(region.getMainRegion().getNome()));
+            dados.addProperty("nome", encrypt(region.getNome()));
+            dados.addProperty("posixLatitude", encryptDouble(region.getPosixLatitude()));
+            dados.addProperty("posixLongitude", encryptDouble(region.getPosixLongitude()));
+            dados.addProperty("user", encryptInt(region.getUser()));
+            dados.addProperty("timestamp", encryptLong(region.getTimestamp()));
             return dados;
         } catch (Exception e) {
             Log.i("Erro na montagem do objeto", String.valueOf(e));
@@ -117,17 +119,17 @@ public class CryptoUtils {
         return null;
     }
 
-    public Map<String, String> encryptSRestrictedRegion(RestrictedRegion region) {
+    public JsonObject encryptSRestrictedRegion(RestrictedRegion region) {
         // Função que monta o objeto de Region encriptado
         try {
-            Map<String, String> dados = new HashMap<>();
-            dados.put("mainRegion", encrypt(region.getMainRegion().getNome()));
-            dados.put("nome", encrypt(region.getNome()));
-            dados.put("posixLatitude", encryptDouble(region.getPosixLatitude()));
-            dados.put("posixLongitude", encryptDouble(region.getPosixLongitude()));
-            dados.put("user", encryptInt(region.getUser()));
-            dados.put("timestamp", encryptLong(region.getTimestamp()));
-            dados.put("restricted", encryptBoolean(region.getRestricted()));
+            JsonObject dados = new JsonObject();
+            dados.addProperty("mainRegion", encrypt(region.getMainRegion().getNome()));
+            dados.addProperty("nome", encrypt(region.getNome()));
+            dados.addProperty("posixLatitude", encryptDouble(region.getPosixLatitude()));
+            dados.addProperty("posixLongitude", encryptDouble(region.getPosixLongitude()));
+            dados.addProperty("user", encryptInt(region.getUser()));
+            dados.addProperty("timestamp", encryptLong(region.getTimestamp()));
+            dados.addProperty("restricted", encryptBoolean(region.getRestricted()));
             return dados;
         } catch (Exception e) {
             Log.i("Erro na montagem do objeto", String.valueOf(e));
@@ -135,12 +137,11 @@ public class CryptoUtils {
         return null;
     }
     
-    public Region decryptRegion(Map <String, Object> data) {
+    public Region decryptRegion(Map<String, Object> data) {
         Region objToSend = new Region();
         try {
             objToSend.setNome(decrypt((String) data.get("nome")));
-            Double obj = decryptDouble((String) data.get("posixLatitude"));
-            objToSend.setPosixLatitude(obj);
+            objToSend.setPosixLatitude(decryptDouble((String) data.get("posixLatitude")));
             objToSend.setPosixLongitude(decryptDouble((String) data.get("posixLongitude")));
             objToSend.setUser(decryptInt((String) data.get("user")));
             objToSend.setTimestamp(decryptLong((String) data.get("timestamp")));
@@ -150,7 +151,7 @@ public class CryptoUtils {
         return objToSend;
     }
 
-    public SubRegion decryptSubRegion(Map <String, Object> data) {
+    public SubRegion decryptSubRegion(Map<String, Object> data) {
         SubRegion objToSend = new SubRegion();
         Region mainRegion = new Region();
         try {
@@ -168,7 +169,7 @@ public class CryptoUtils {
         return objToSend;
     }
 
-    public RestrictedRegion decryptRestrictedRegion(Map <String, Object> data) {
+    public RestrictedRegion decryptRestrictedRegion(Map<String, Object> data) {
         RestrictedRegion objToSend = new RestrictedRegion();
         Region mainRegion = new Region();
         try {

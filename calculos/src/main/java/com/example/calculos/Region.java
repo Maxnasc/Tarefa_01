@@ -2,6 +2,8 @@ package com.example.calculos;
 
 import android.location.Location;
 
+import com.google.gson.JsonObject;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -12,7 +14,7 @@ public class Region {
     protected double posixLongitude;
     protected int user;
     protected long timestamp;
-    protected Map<String, String> dadoEncriptado;
+    protected JsonObject dadoEncriptado;
 
 
     public Region() {
@@ -27,11 +29,11 @@ public class Region {
         this.timestamp = timestamp;
     }
 
-    public void setDadoEncriptado (Map<String, String> dadoEncriptado) {
+    public void setDadoEncriptado (JsonObject dadoEncriptado) {
         this.dadoEncriptado = dadoEncriptado;
     }
 
-    public Map<String, String> getDadoEncriptado() {
+    public JsonObject getDadoEncriptado() {
         return dadoEncriptado;
     }
 

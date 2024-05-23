@@ -87,8 +87,7 @@ public class RegionManager implements Runnable{
                         String nomeRegiao = "Regiao_"+uniqueId;
 
                         regiao = new Region(nomeRegiao, coordenadas.getLatitude(), coordenadas.getLongitude(), 1, System.nanoTime());
-                        Map<String, String> dadoEncriptado = encriptador.encryptRegion(regiao);
-                        regiao.setDadoEncriptado(dadoEncriptado);
+                        regiao.setDadoEncriptado(encriptador.encryptRegion(regiao));
                         filaCoordenadas.add(regiao);
                         semaforo.setFilaCoordenadas(filaCoordenadas);
                         showMessage("Região adicionada");

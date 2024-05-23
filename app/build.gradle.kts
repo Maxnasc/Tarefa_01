@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.google.services)
     implementation(libs.firebase.bom)
     implementation(libs.firebase.analytics)
+    implementation(libs.gson)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
