@@ -6,7 +6,7 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Utils {
-    public final double RAIO_REGION = 30.0;
+    public final double RAIO_REGION = 0;
     public final double RAIO_SUB_REGION = 0;
     private static final int MAX_UNIQUE_IDS = 10000;
 
