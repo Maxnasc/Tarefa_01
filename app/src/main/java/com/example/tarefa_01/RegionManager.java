@@ -25,8 +25,8 @@ public class RegionManager implements Runnable{
     // raio em metros
     private Utils utils = new Utils();
     private CryptoUtils encriptador = new CryptoUtils();
-
     private boolean chaveador_regiao = false; // false = sub e true = restrict
+    private Escalonador escalonador = new Escalonador();
 
     public RegionManager(int tempo, Context context) {
         this.tempo = tempo;
@@ -39,6 +39,9 @@ public class RegionManager implements Runnable{
     public void run() {
         while (true) {
             try {
+                // Coleta de tempo inicial da tarefa
+                long inicio = System.nanoTime();
+
                 // Bloqueia a execução até que o semáforo seja liberado
                 semaforo.take();
 
@@ -95,7 +98,10 @@ public class RegionManager implements Runnable{
                     semaforo.setNumberRegionsOnQueue(filaCoordenadas.size());
                     }
                 }
-                int a=1;
+
+                // Coleta de tempo inicial da tarefa
+                long fim = System.nanoTime();
+                escalonador.addTaskToJson("Adiciona_regiao", inicio, fim);
 
                 // Libera o semáforo
             try {
@@ -103,8 +109,9 @@ public class RegionManager implements Runnable{
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-
             Thread.sleep(tempo);
+
+
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             } catch (Exception e) {

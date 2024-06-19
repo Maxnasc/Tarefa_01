@@ -23,6 +23,7 @@ public class Localizacao extends AppCompatActivity implements Runnable {
     private final Semaphore semaforo;
     private double latitude;
     private double longitude;
+    private Escalonador escalonador = new Escalonador();
 
     public Localizacao(int tempo, Context context){
         this.tempo = tempo;
@@ -37,12 +38,19 @@ public class Localizacao extends AppCompatActivity implements Runnable {
             // Pega a localização do usuário aqui
             Log.i("Localizacao: ", "Thread de localização funcionando");
             while (true) {
+                // Coleta de tempo inicial da tarefa
+                long inicio = System.nanoTime();
+
                 getLocation();
                 //Postagem dos resultados
                 semaforo.take();
                 semaforo.set_coordenadas(latitude, longitude);
                 semaforo.release();
                 Thread.sleep(tempo);
+
+                // Coleta de tempo inicial da tarefa
+                long fim = System.nanoTime();
+                escalonador.addTaskToJson("Obtem_localizacao", inicio, fim);
             }
         } catch (InterruptedException e) {
             // Mostra o erro no terminal para facilitar a depuração
