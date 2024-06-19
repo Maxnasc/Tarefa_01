@@ -55,11 +55,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Queue<Region> filaCoordenadas;
     private Queue<Region> dadosDB = new LinkedList<>();
     private final CryptoUtils encriptador = new CryptoUtils();
+    private Escalonador escalonador = new Escalonador();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        long inicio = System.nanoTime();
+        escalonador.addTaskToJson("Inicio_app", inicio, 0);
 
         initializeFirebase();
         initializeViews();
@@ -135,6 +139,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void showMap() throws InterruptedException {
+        long inicio = System.nanoTime();
+
         semaforo.take();
         coordenadas = semaforo.get_coordenadas();
         posicao = new LatLng(coordenadas.getLatitude(), coordenadas.getLongitude());
@@ -147,6 +153,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         updateCoordinatesText();
         bufferCoordenadas = coordenadas;
         semaforo.release();
+        long fim = System.nanoTime();
+        escalonador.addTaskToJson("Atualizar_mapa", inicio, fim);
     }
 
     @Override
@@ -182,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void recordDB() {
         new Thread(() -> {
+            long inicio = System.nanoTime();
             try {
                 semaforo.take();
                 filaCoordenadas = semaforo.getFilaCoordenadas();
@@ -199,6 +208,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.i("ERRO", String.valueOf(e));
                 throw new RuntimeException(e);
             }
+            long fim = System.nanoTime();
+            escalonador.addTaskToJson("Escreve_no_banco", inicio, fim);
         }).start();
     }
 
@@ -241,6 +252,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void consultaBanco() {
+        long inicio = System.nanoTime();
         db.collection("Regioes").get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Log.i("recordDB", "Dados lidos com sucesso");
@@ -256,6 +268,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.w("Firebase", "Erro ao obter documentos.", task.getException());
             }
         });
+        long fim = System.nanoTime();
+        escalonador.addTaskToJson("Consulta_banco", inicio, fim);
     }
 
     private Region decryptRegionData(Map<String, Object> data) {
