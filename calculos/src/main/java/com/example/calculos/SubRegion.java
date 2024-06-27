@@ -8,7 +8,6 @@ import java.util.Queue;
 
 public class SubRegion extends Region {
     private Region mainRegion;
-    public final double RAIO_MINIMO = 0;
 
     public SubRegion() {}
 
