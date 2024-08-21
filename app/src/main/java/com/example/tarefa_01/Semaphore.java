@@ -12,6 +12,7 @@ public class Semaphore {
     private static boolean adicionarRegiao = false;
     private static int regioesNaFila;
     private static Region regionToEncrypt;
+    private Queue<Region> dadosDB = new LinkedList<>();
 
     public synchronized void take() {
         signal = true;
@@ -64,5 +65,13 @@ public class Semaphore {
 
     public Region getEncryptRequest() {
         return regionToEncrypt;
+    }
+
+    public Queue<Region> get_dadosDB() {
+        return dadosDB;
+    }
+
+    public void set_dadosDB(Queue<Region> dadosDB) {
+        this.dadosDB = dadosDB;
     }
 }

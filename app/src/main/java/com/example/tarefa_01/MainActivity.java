@@ -105,8 +105,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void initializeThreads() {
         Localizacao localizacao = new Localizacao(1000, this);
         RegionManager addRegionManager = new RegionManager(1000, this);
+        MountTrajectory analyseTrajectory = new MountTrajectory(1000);
         new Thread(localizacao).start();
         new Thread(addRegionManager).start();
+        new Thread((analyseTrajectory)).start();
     }
 
     private void setWindowInsets() {
